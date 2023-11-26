@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\jrabr\OneDrive\Desktop\Michigan Classes\Linear Algebra\PageRank Project\Build\CMakeFiles\84c7ae6fb992b4ce6675daf87b080f75\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{90136C9A-1692-35D6-8161-7F9BCFF23AB2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

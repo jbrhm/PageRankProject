@@ -1,0 +1,10 @@
+^C:\USERS\JRABR\ONEDRIVE\DESKTOP\MICHIGAN CLASSES\LINEAR ALGEBRA\PAGERANK PROJECT\BUILD\CMAKEFILES\84C7AE6FB992B4CE6675DAF87B080F75\GENERATE.STAMP.RULE
+setlocal
+C:\Users\jrabr\Downloads\cmake-3.28.0-rc2-windows-x86_64\cmake-3.28.0-rc2-windows-x86_64\bin\cmake.exe "-SC:/Users/jrabr/OneDrive/Desktop/Michigan Classes/Linear Algebra/PageRank Project" "-BC:/Users/jrabr/OneDrive/Desktop/Michigan Classes/Linear Algebra/PageRank Project/Build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/jrabr/OneDrive/Desktop/Michigan Classes/Linear Algebra/PageRank Project/Build/PageRank.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
