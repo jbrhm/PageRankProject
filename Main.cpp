@@ -5,6 +5,40 @@
 #include <ctime>
 #include <unordered_map>
 #include <chrono>
+#include <cmath>
+
+class Polynomial{
+    private:
+    std::vector<double> polynomial;
+
+    public:
+    Polynomial(std::vector<double> polynomial){
+        this->polynomial = polynomial;
+    }
+    double getZero(){
+        int numIterations = 100;
+        double xValue = 0;
+        for(int i = 0; i < numIterations; i++){
+            xValue = xValue - (getValue(xValue)/getDerivative(xValue));
+        }
+        return xValue;
+    }
+
+    double getDerivative(double xValue){
+        double step = 0.0000001;
+        double deltaY = getValue(xValue + step) - getValue(xValue);    
+        return deltaY/step;
+    }
+
+    double getValue(double xValue){
+        int size = polynomial.size();
+        double value = 0;
+        for(int i = 0; i < size; i++){
+            value += polynomial.at(i) * std::pow(xValue, i);
+        }
+        return value;
+    }
+};
 
 
 struct WebPage{
@@ -101,6 +135,7 @@ class SearchEngine{
 };
 
 int main(){
+    /*
     WebPage google("Google", "Search Engine");
     WebPage bing("Bing", "Search Engine");
     WebPage duckDuckGo("DuckDuck", "Search Engine");
@@ -121,4 +156,8 @@ int main(){
     std::vector<WebPage> allLinks{google, bing, duckDuckGo};
     SearchEngine engine(&allLinks);
     engine.startExecution();
+    */
+   std::vector<double> polynomialVals{6, -5, 1};
+   Polynomial polynomial(polynomialVals);
+   std::cout << polynomial.getZero() << std::endl;
 }
