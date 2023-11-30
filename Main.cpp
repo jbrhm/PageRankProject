@@ -6,15 +6,53 @@
 #include <unordered_map>
 #include <chrono>
 #include <cmath>
+#include <algorithm>
 
 class Polynomial{
     private:
     std::vector<double> polynomial;
 
     public:
+
     Polynomial(std::vector<double> polynomial){
         this->polynomial = polynomial;
     }
+
+    Polynomial(){
+        polynomial = std::vector<double>();
+    }
+
+    std::vector<double> getAllZeros(){
+        Polynomial currentPolynomial = polynomial;
+
+        std::vector<double> zeros;
+        for(int i = 0; i < polynomial.size() - 1; i++){
+            double zero = currentPolynomial.getZero();
+            currentPolynomial = currentPolynomial.syntheticDivision(zero);
+            zeros.push_back(zero);
+        }
+
+        return zeros;
+    }
+
+    Polynomial syntheticDivision(double divisor){
+        std::vector<double> dividend;
+        int value = polynomial.at(polynomial.size() - 1);
+        dividend.push_back(value);
+        for(int i = (polynomial.size() - 2); i >= 1; i--){
+            value *= divisor;
+            value += polynomial.at(i);
+            dividend.push_back(value);
+        }
+        /*
+        for(double coeff : dividend){
+            std::cout << coeff << std::endl;
+        }
+        */
+        std::reverse(dividend.begin(), dividend.end());
+        return Polynomial(dividend);
+    }
+
     double getZero(){
         int numIterations = 100;
         double xValue = 0;
@@ -157,7 +195,10 @@ int main(){
     SearchEngine engine(&allLinks);
     engine.startExecution();
     */
-   std::vector<double> polynomialVals{6, -5, 1};
-   Polynomial polynomial(polynomialVals);
-   std::cout << polynomial.getZero() << std::endl;
+    std::vector<double> polynomialVals{6, -5, 1};
+    Polynomial polynomial(polynomialVals);
+    std::vector<double> zeros = {polynomial.getAllZeros()};
+    for(double zero : zeros){
+        std::cout << zero << std::endl;
+    }
 }
