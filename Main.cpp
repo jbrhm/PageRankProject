@@ -7,6 +7,115 @@
 #include <chrono>
 #include <cmath>
 #include <algorithm>
+#include <limits>
+
+struct Term{
+    double coefficient;
+    double constant;
+
+    Term(double coefficient, double constant){
+        this->coefficient = coefficient;
+        this->constant = constant;
+    }
+
+    double getConstant(){
+        return constant;
+    }
+
+    void setConstant(double constant){
+        this->constant = constant;
+    }
+};
+
+struct Matrix
+{
+    private:
+    //The underlying matrix data
+    std::vector<std::vector<Term>> mat;
+
+    //Number of Rows
+    int rows;
+
+    //Number of Colums
+    int cols;
+
+    bool isVectorContains(std::vector<int> vector, int value){
+        for(int val : vector){
+            if(val == value){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public:
+    Matrix(std::vector<std::vector<Term>> mat){
+        this->mat = mat;
+        rows = mat.size();
+        if(rows != 0){
+            cols = mat.at(0).size();
+        }
+    }
+
+    double calcDeterminant(){
+        double determinant = 1;
+
+        std::vector<int> pivotRows;
+        if(rows != cols){
+            throw std::runtime_error("The Matrix is not square");
+        }
+
+        //Find the pivot column
+        for (int columnStart = 0; columnStart < cols; columnStart++){
+            int leadingRow = -1;
+            double pivotValue = 0;
+            for(int row = 0; row < rows; row++){
+                double value = mat.at(row).at(columnStart).getConstant();
+                if(value != 0 && !isVectorContains(pivotRows, row)){
+                    leadingRow = row;
+                    pivotValue = value;
+                    break;
+                }
+            }
+            if(leadingRow != -1){
+                pivotRows.push_back(leadingRow);
+
+                std::cout << leadingRow << " Lead row " << std::endl;
+                determinant *= pivotValue;
+                //With the leading row determined we need to scale it to be 1
+                for(int column = columnStart; column < cols; column++){
+                    mat.at(leadingRow).at(column).setConstant(mat.at(leadingRow).at(column).getConstant()/pivotValue);
+                }
+
+                for(int row = 0; row < rows; row++){
+                    if(row != leadingRow){
+                        double leadingValue = mat.at(row).at(columnStart).getConstant();
+                        std::cout << leadingValue << "leadingValue" << std::endl;
+                        for(int column = columnStart; column < cols; column++){
+                            mat.at(row).at(column).setConstant(mat.at(row).at(column).getConstant() - leadingValue * mat.at(leadingRow).at(column).getConstant());
+                        }
+                    }
+                }
+            }
+            else{
+                determinant *= 0;
+            }
+        }
+        return determinant;
+    }
+
+    void printMatrix(){
+        std::cout << "rows: " << rows << " cols: " << cols << std::endl; 
+        for(std::vector<Term> row : mat){
+            for(Term term : row){
+                std::cout << term.getConstant() << ", ";
+            }
+            std::cout << std::endl;
+        }
+    }
+};
+
+
 
 class Polynomial{
     private:
@@ -173,32 +282,11 @@ class SearchEngine{
 };
 
 int main(){
-    /*
-    WebPage google("Google", "Search Engine");
-    WebPage bing("Bing", "Search Engine");
-    WebPage duckDuckGo("DuckDuck", "Search Engine");
-
-    //Set Up Google's Links
-    std::vector<WebPage> googleLinks{bing, duckDuckGo};
-    google.setLinks(googleLinks);
-
-    //Set Up Bing's Links
-    std::vector<WebPage> bingLinks{google, duckDuckGo};
-    bing.setLinks(bingLinks);
-
-    //Set Up Duck Duck Go's Links
-    std::vector<WebPage> duckDuckGoLinks{bing};
-    duckDuckGo.setLinks(duckDuckGoLinks);
-
-    //Set up the Engine Over the Entire Search Space
-    std::vector<WebPage> allLinks{google, bing, duckDuckGo};
-    SearchEngine engine(&allLinks);
-    engine.startExecution();
-    */
-    std::vector<double> polynomialVals{6, -5, 1};
-    Polynomial polynomial(polynomialVals);
-    std::vector<double> zeros = {polynomial.getAllZeros()};
-    for(double zero : zeros){
-        std::cout << zero << std::endl;
-    }
+    Term a(0, 2), b(0, 2), c(0, 1), d(0, 0);
+    std::vector<std::vector<Term>> vals =   {{a, b},
+                                             {c, d}};
+    Matrix m(vals);
+    m.printMatrix();
+    std::cout << m.calcDeterminant() << " determinant " << std::endl;
+    m.printMatrix();
 }
