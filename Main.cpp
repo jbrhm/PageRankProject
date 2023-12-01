@@ -143,7 +143,6 @@ class Polynomial{
             double zero = currentPolynomial.getZero();
             currentPolynomial = Polynomial(currentPolynomial.syntheticDivision(zero).getCoefficientVector());
             currentPolynomial.printPolynomial();
-            std::cout << zero << " has a zero" << std::endl;
             zeros.push_back(zero);
         }
 
@@ -152,22 +151,14 @@ class Polynomial{
 
     Polynomial syntheticDivision(double divisor){
         std::vector<double> dividend;
-        int value = polynomial.at(polynomial.size() - 1);
-        std::cout << value << " intit vaue "<< std::endl;
+        double value = polynomial.at(polynomial.size() - 1);
         dividend.push_back(value);
         for(int i = (polynomial.size() - 2); i >= 1; i--){
-            for(double d : dividend){
-                std::cout << d << " dividene " << divisor << std::endl;
-            }
-            std::cout << value << " intit vaue " << divisor << "idk what the fuck is wrong " << value * divisor << std::endl;
             value = value * divisor;
-            std::cout << value << " and  " << polynomial.at(i) << " i " << i << std::endl;
-
             value += polynomial.at(i);
             dividend.push_back(value);
         }
         for(double d : dividend){
-            std::cout << d << " dividene" << std::endl;
         }
         /*
         for(double coeff : dividend){
@@ -433,21 +424,9 @@ int main(){
 
     poly1.multiplyPolynomial(poly2);
     std::vector<double> zeros = poly1.getAllZeros();
-    for(double d : zeros){
-        std::cout << d << " is a zero of the fnc" << std::endl;
-    }
 
-    std::vector<double> polytVals{-1, -1, 1, 1};
-    Polynomial polyt(polytVals);
-
-    polyt.syntheticDivision(-1).printPolynomial();
-
-
-    /*
     Rational rat = Rational{poly1, poly2};
     rat.printRational();
     rat.simplify();
     rat.printRational();
-    */
-
 }
