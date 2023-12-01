@@ -230,6 +230,28 @@ class Polynomial{
         polynomial = sum;
     }
 
+    void multiplyPolynomial(Polynomial multiply){
+        std::vector<Polynomial> subTerms;
+
+        for(int scalarIndex = 0; scalarIndex < polynomial.size(); scalarIndex++){
+            std::vector<double> tempTerm;
+            for(int i = 0; i < scalarIndex; i++){
+                tempTerm.push_back(0);//Do increase the degree of the polynomial accordingly
+            }
+            double scalar = polynomial.at(scalarIndex);
+            for(double coefficient : multiply.getCoefficientVector()){
+                tempTerm.push_back(scalar * coefficient);
+            }
+            subTerms.push_back(Polynomial(tempTerm));
+        }
+
+        Polynomial sumTerms(std::vector<double>{0});
+        for(Polynomial subPoly : subTerms){
+            sumTerms.addPolynomial(subPoly);
+        }
+        polynomial = sumTerms.getCoefficientVector();
+    }
+
     void printPolynomial(){
         for(double coeff : polynomial){
             std::cout << coeff << std::endl;
@@ -338,6 +360,6 @@ int main(){
     std::vector<double> poly2Vals{0, 1, 2, 3};
     Polynomial poly2(poly2Vals);
 
-    poly1.addPolynomial(poly2);
+    poly1.multiplyPolynomial(poly2);
     poly1.printPolynomial();
 }
