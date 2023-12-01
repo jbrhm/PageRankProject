@@ -185,6 +185,56 @@ class Polynomial{
         }
         return value;
     }
+
+    int getDegree(){
+        return polynomial.size() - 1;
+    }
+
+    double getCoefficient(int degree){
+        return polynomial.at(degree);
+    }
+
+    std::vector<double> getCoefficientVector(){
+        return polynomial;
+    }
+
+    void setCoefficientVector(std::vector<double> coefficientVector){
+        polynomial = coefficientVector;
+    }
+
+    void addPolynomial(Polynomial add){
+        Polynomial large;
+        Polynomial small;
+
+        std::vector<double> sum;
+
+        //Determine which Polynomial has the higher degree
+        if(add.getDegree() > polynomial.size()-1){
+            large = add;
+            small = polynomial;
+        }else{
+            large = polynomial;
+            small = add;
+        }
+
+        std::cout << "The large degree is " << large.getDegree() << std::endl;
+
+        for(int degree = 0; degree <= large.getDegree(); degree++){
+            int coeffSum = large.getCoefficient(degree);
+            if(small.getDegree() >= degree){
+                coeffSum += small.getCoefficient(degree);
+            }
+            sum.push_back(coeffSum);
+        }
+
+        polynomial = sum;
+    }
+
+    void printPolynomial(){
+        for(double coeff : polynomial){
+            std::cout << coeff << std::endl;
+        }
+    }
 };
 
 
@@ -282,11 +332,12 @@ class SearchEngine{
 };
 
 int main(){
-    Term a(0, 2), b(0, 2), c(0, 1), d(0, 0);
-    std::vector<std::vector<Term>> vals =   {{a, b},
-                                             {c, d}};
-    Matrix m(vals);
-    m.printMatrix();
-    std::cout << m.calcDeterminant() << " determinant " << std::endl;
-    m.printMatrix();
+    std::vector<double> poly1Vals{0, 1,2};
+    Polynomial poly1(poly1Vals);
+
+    std::vector<double> poly2Vals{0, 1, 2, 3};
+    Polynomial poly2(poly2Vals);
+
+    poly1.addPolynomial(poly2);
+    poly1.printPolynomial();
 }
