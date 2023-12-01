@@ -9,6 +9,10 @@
 #include <algorithm>
 #include <limits>
 
+
+
+
+
 struct Term{
     double coefficient;
     double constant;
@@ -137,7 +141,9 @@ class Polynomial{
         std::vector<double> zeros;
         for(int i = 0; i < polynomial.size() - 1; i++){
             double zero = currentPolynomial.getZero();
-            currentPolynomial = currentPolynomial.syntheticDivision(zero);
+            currentPolynomial = Polynomial(currentPolynomial.syntheticDivision(zero).getCoefficientVector());
+            currentPolynomial.printPolynomial();
+            std::cout << zero << " has a zero" << std::endl;
             zeros.push_back(zero);
         }
 
@@ -147,11 +153,21 @@ class Polynomial{
     Polynomial syntheticDivision(double divisor){
         std::vector<double> dividend;
         int value = polynomial.at(polynomial.size() - 1);
+        std::cout << value << " intit vaue "<< std::endl;
         dividend.push_back(value);
         for(int i = (polynomial.size() - 2); i >= 1; i--){
-            value *= divisor;
+            for(double d : dividend){
+                std::cout << d << " dividene " << divisor << std::endl;
+            }
+            std::cout << value << " intit vaue " << divisor << "idk what the fuck is wrong " << value * divisor << std::endl;
+            value = value * divisor;
+            std::cout << value << " and  " << polynomial.at(i) << " i " << i << std::endl;
+
             value += polynomial.at(i);
             dividend.push_back(value);
+        }
+        for(double d : dividend){
+            std::cout << d << " dividene" << std::endl;
         }
         /*
         for(double coeff : dividend){
@@ -168,6 +184,7 @@ class Polynomial{
         for(int i = 0; i < numIterations; i++){
             xValue = xValue - (getValue(xValue)/getDerivative(xValue));
         }
+        //std::cout << getValue(xValue) << " for zero " << xValue << std::endl;
         return xValue;
     }
 
@@ -257,6 +274,60 @@ class Polynomial{
             std::cout << coeff << std::endl;
         }
     }
+};
+
+class Rational{
+    private:
+    Polynomial numerator;
+
+    Polynomial denominator;
+
+    static bool isVectorContains(std::vector<double> vector, int value){
+    for(int val : vector){
+        if(val == value){
+            return true;
+        }
+    }
+    return false;
+}
+
+
+    public:
+    Rational(Polynomial numerator){
+        this->numerator = numerator;
+        denominator = Polynomial{std::vector<double>{1}};
+    }
+
+    Rational(Polynomial numerator, Polynomial denominator){
+        this->numerator = numerator;
+        this->denominator = denominator;
+    }
+
+    void simplify(){
+        std::vector<double> numeratorZeros = numerator.getAllZeros();
+        std::vector<double> denominatorZeros = denominator.getAllZeros();
+        for(double zero : numeratorZeros){
+            std::cout << zero << " is a zero in the num" << std::endl;
+        }
+
+
+        for(double zero : denominatorZeros){
+            std::cout << zero << " is a zero in the den" << std::endl;
+            if(isVectorContains(numeratorZeros, zero)){
+                numerator = numerator.syntheticDivision(zero);
+                denominator = denominator.syntheticDivision(zero);
+            }
+        }
+    }
+
+    void printRational(){
+        std::cout << "Numerator Polynomial" << std::endl;
+        numerator.printPolynomial();
+    
+        std::cout << "Denominator Polynomial" << std::endl;
+        denominator.printPolynomial();
+    }
+
 };
 
 
@@ -354,12 +425,29 @@ class SearchEngine{
 };
 
 int main(){
-    std::vector<double> poly1Vals{0, 1,2};
+    std::vector<double> poly1Vals{1, 0, -1};
     Polynomial poly1(poly1Vals);
 
-    std::vector<double> poly2Vals{0, 1, 2, 3};
+    std::vector<double> poly2Vals{1, 0, -1};
     Polynomial poly2(poly2Vals);
 
     poly1.multiplyPolynomial(poly2);
-    poly1.printPolynomial();
+    std::vector<double> zeros = poly1.getAllZeros();
+    for(double d : zeros){
+        std::cout << d << " is a zero of the fnc" << std::endl;
+    }
+
+    std::vector<double> polytVals{-1, -1, 1, 1};
+    Polynomial polyt(polytVals);
+
+    polyt.syntheticDivision(-1).printPolynomial();
+
+
+    /*
+    Rational rat = Rational{poly1, poly2};
+    rat.printRational();
+    rat.simplify();
+    rat.printRational();
+    */
+
 }
