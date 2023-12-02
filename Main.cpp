@@ -8,6 +8,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <string.h>
 
 
 
@@ -523,6 +524,10 @@ struct WebPage{
         return websiteName;
     }
 
+    std::string getKeyword(){
+        return keyword;
+    }
+
 
 
     std::string loadWebPage(){
@@ -554,9 +559,6 @@ class SearchEngine{
     //Map of WebPage names to their index
     std::unordered_map<std::string, int> webPageMap;
 
-    //ID order for the webpages
-    std::vector<int> pageIDOrder;
-
     public:
     //Constructor for the SearchEngine
     SearchEngine(std::vector<WebPage>* pages){
@@ -568,11 +570,50 @@ class SearchEngine{
         for(int i = 0; i < pages->size(); i++){
             webPageMap[pages->at(i).getWebsiteName()] = i;
         }
+    }
 
-        generatePageIDOrderVector();
-        for(int ID : pageIDOrder){
-            std::cout << ID << std::endl;
+    std::vector<WebPage> search(std::string search){
+        std::vector<WebPage> orderedPages;
+        std::vector<WebPage> searchedPages = getSearchedForPages(search);
+        for(auto p : searchedPages){
+            std::cout << p.getWebsiteName() <<std::endl;
         }
+        std::vector<int> pageIDOrder = generatePageIDOrderVector(searchedPages);
+        for(auto p : pageIDOrder){
+            std::cout << p <<std::endl;
+        }
+        Matrix transitionMatrix = generateTransitionMatrix(pageIDOrder);
+        transitionMatrix.addMatrix(Matrix::generateIdentity(-1, pageIDOrder.size()));
+        transitionMatrix.putInRREF();
+        std::vector<std::vector<double>> kernelBasis = transitionMatrix.getKernelBasis();
+        if(kernelBasis.empty()) throw std::runtime_error("Kernel Empty");
+        std::vector<double> equilibriumVector = kernelBasis[0];
+        for(auto p : equilibriumVector){
+            std::cout << p <<std::endl;
+        }
+        int eqSize = equilibriumVector.size();
+        for(int m = 0; m < eqSize; m++){
+            int maxIndex = 0;
+            for(int i = 0; i < equilibriumVector.size(); i++){
+                if(equilibriumVector.at(i) > equilibriumVector.at(maxIndex)){
+                    maxIndex = i;
+                }
+            }
+            orderedPages.push_back(searchedPages.at(maxIndex));
+            searchedPages.erase(searchedPages.begin() + maxIndex);
+            equilibriumVector.erase(equilibriumVector.begin() + maxIndex);
+        }
+        return orderedPages;
+    }
+
+    std::vector<WebPage> getSearchedForPages(std::string search){
+        std::vector<WebPage> searchedPages;
+        for(WebPage page : *pages){
+            if(strcmp(search.c_str(), page.getKeyword().c_str()) == 0){
+                searchedPages.push_back(page);
+            }
+        }
+        return searchedPages;
     }
 
     void startExecution(){
@@ -590,13 +631,16 @@ class SearchEngine{
         }
     }
 
-    void generatePageIDOrderVector(){
-        for(WebPage page : *pages){
+    std::vector<int> generatePageIDOrderVector(std::vector<WebPage> pages){
+        //ID order for the webpages
+        std::vector<int> pageIDOrder;
+        for(WebPage page : pages){
             pageIDOrder.push_back(page.getID());
         }
+        return pageIDOrder;
     }
 
-    Matrix generateTransitionMatrix(){
+    Matrix generateTransitionMatrix(std::vector<int> pageIDOrder){
         std::vector<std::vector<Term>> transitionMatrix;
         for(int i = 0; i < pages->size(); i++){
             std::vector<Term> row;
@@ -639,16 +683,9 @@ int main(){
     SearchEngine engine(&allLinks);
 
     std::cout << "Before gen" << std::endl;
-    Matrix tranisitionMatrix = engine.generateTransitionMatrix();
-    tranisitionMatrix.printMatrix();
-
-    tranisitionMatrix.addMatrix(Matrix::generateIdentity(-1, 3));
-    tranisitionMatrix.printMatrix();
-
-    tranisitionMatrix.putInRREF();
-    tranisitionMatrix.printMatrix();
-
-    auto basis = tranisitionMatrix.getKernelBasis();
-    Matrix::printBasisList(basis);
+    auto pages = engine.search("Search Engine");
+    for(WebPage page : pages){
+        std::cout << page.getWebsiteName() << std::endl;
+    }
     //engine.startExecution();
 }
