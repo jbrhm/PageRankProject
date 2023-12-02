@@ -61,9 +61,38 @@ struct Matrix
         }
     }
 
-    double calcDeterminant(){
-        double determinant = 1;
+    void addMatrix(Matrix additionalMatrix){
+        if(additionalMatrix.getCols() != cols) throw std::runtime_error("Matrices Cols are Different Sizes");
 
+        if(additionalMatrix.getRows() != rows) throw std::runtime_error("Matrices Rows are Different Sizes");
+
+        for(int row = 0; row < rows; row++){
+            for(int col = 0; col < cols; col++){
+                Term tempTerm(0, additionalMatrix.getTerm(row, col).getConstant() + this->getTerm(row, col).getConstant());
+                setTerm(tempTerm, row, col);
+            }
+        }
+    }
+
+    static Matrix generateIdentity(double scalar, int dimension){
+        std::vector<std::vector<Term>> mat;
+
+        for(int row = 0; row < dimension; row++){
+            std::vector<Term> tempRow;
+            for(int col = 0; col < dimension; col++){
+                if(col == row){
+                    tempRow.push_back(Term(0, scalar));
+                }else{
+                    tempRow.push_back(Term(0, 0));
+                }
+            }
+            mat.push_back(tempRow);
+        }
+        return Matrix(mat);
+    }
+
+    void putInRREF(){
+        double determinant = 1;
         std::vector<int> pivotRows;
         if(rows != cols){
             throw std::runtime_error("The Matrix is not square");
@@ -105,6 +134,91 @@ struct Matrix
                 determinant *= 0;
             }
         }
+    }
+
+    std::vector<std::vector<double>> getKernelBasis(){
+        std::vector<std::vector<double>> basisList;
+
+        std::vector<int> pivotRowsIndexes;
+        for(int col = 0; col < cols; col++){
+            bool t = !isPivotColumn(col, &pivotRowsIndexes);
+            std::cout << col << " lolol pivot " << t << std::endl;
+            if(t){
+                std::vector<double> basisVector;
+                std::cout << "bruh" << std::endl;
+                for(int row = 0; row < rows; row++){
+                    std::vector<Term> currRow = mat.at(row);
+                    std::cout << currRow.at(col).getConstant() << " " << (row == col) << " " << " " << -currRow.at(col).getConstant() << std::endl;
+                    if(currRow.at(col).getConstant() == 0 && row == col){
+                        basisVector.push_back(1);
+                    }else{
+                        basisVector.push_back(-currRow.at(col).getConstant());
+                    }
+                }
+                for(double d : basisVector){
+                    std::cout << d << std::endl;
+                }
+                basisList.push_back(basisVector);
+            }
+        }
+        return basisList;
+    }
+
+    static void printBasisList(std::vector<std::vector<double>> kernelBasis){
+        for(std::vector<double> vector : kernelBasis){
+            for(double scalar : vector){
+                std::cout << scalar << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    double calcDeterminant(){
+        double determinant = 1;
+
+        std::vector<std::vector<Term>> tempMat = mat;
+
+        std::vector<int> pivotRows;
+        if(rows != cols){
+            throw std::runtime_error("The Matrix is not square");
+        }
+
+        //Find the pivot column
+        for (int columnStart = 0; columnStart < cols; columnStart++){
+            int leadingRow = -1;
+            double pivotValue = 0;
+            for(int row = 0; row < rows; row++){
+                double value = tempMat.at(row).at(columnStart).getConstant();
+                if(value != 0 && !isVectorContains(pivotRows, row)){
+                    leadingRow = row;
+                    pivotValue = value;
+                    break;
+                }
+            }
+            if(leadingRow != -1){
+                pivotRows.push_back(leadingRow);
+
+                std::cout << leadingRow << " Lead row " << std::endl;
+                determinant *= pivotValue;
+                //With the leading row determined we need to scale it to be 1
+                for(int column = columnStart; column < cols; column++){
+                    tempMat.at(leadingRow).at(column).setConstant(tempMat.at(leadingRow).at(column).getConstant()/pivotValue);
+                }
+
+                for(int row = 0; row < rows; row++){
+                    if(row != leadingRow){
+                        double leadingValue = tempMat.at(row).at(columnStart).getConstant();
+                        std::cout << leadingValue << "leadingValue" << std::endl;
+                        for(int column = columnStart; column < cols; column++){
+                            tempMat.at(row).at(column).setConstant(tempMat.at(row).at(column).getConstant() - leadingValue * tempMat.at(leadingRow).at(column).getConstant());
+                        }
+                    }
+                }
+            }
+            else{
+                determinant *= 0;
+            }
+        }
         return determinant;
     }
 
@@ -116,6 +230,45 @@ struct Matrix
             }
             std::cout << std::endl;
         }
+    }
+
+    int getRows(){
+        return rows;
+    }
+
+    int getCols(){
+        return cols;
+    }
+
+    void setTerm(Term term, int rowIndex, int colIndex){
+        mat.at(rowIndex).at(colIndex) = term;
+    }
+
+    Term getTerm(int rowIndex, int colIndex){
+        return mat.at(rowIndex).at(colIndex);
+    }
+    //Columns Start At 0
+    bool isPivotColumn(int col, std::vector<int>* pivotRowsIndexes){
+        int numOnes = 0;
+        std::cout << pivotRowsIndexes->size() << " size" << std::endl;
+        for(int index : (*pivotRowsIndexes)){
+            std::cout << index << " pivot " << std::endl;
+        }
+
+        for(int rowIndex = 0; rowIndex < rows; rowIndex++){
+            std::vector<Term> row = mat.at(rowIndex);
+            std::cout << rowIndex << " row " << (row.at(col).getConstant() == 1) << " constant bool " << !isVectorContains(*pivotRowsIndexes, rowIndex) << " thing" << std::endl;
+            if(row.at(col).getConstant() == 1 && !isVectorContains(*pivotRowsIndexes, rowIndex)){
+                numOnes++;
+                pivotRowsIndexes->push_back(rowIndex);
+                if(numOnes > 1){
+                    return false;
+                }
+            }else if(row.at(col).getConstant() != 0){
+                return false;
+            }
+        }
+        return true;
     }
 };
 
@@ -416,17 +569,17 @@ class SearchEngine{
 };
 
 int main(){
-    std::vector<double> poly1Vals{1, 0, -1};
-    Polynomial poly1(poly1Vals);
-
-    std::vector<double> poly2Vals{1, 0, -1};
-    Polynomial poly2(poly2Vals);
-
-    poly1.multiplyPolynomial(poly2);
-    std::vector<double> zeros = poly1.getAllZeros();
-
-    Rational rat = Rational{poly1, poly2};
-    rat.printRational();
-    rat.simplify();
-    rat.printRational();
+    Term a(0, 2), b(0, 1), c(0, 1), d(0, 2);
+    std::vector<std::vector<Term>> vals =   {{a, b},
+                                             {c, d}};
+    Matrix m(vals);
+    m.printMatrix();
+    std::cout << m.calcDeterminant() << " determinant " << std::endl;
+    m.printMatrix();
+    Matrix negativeIdentity = Matrix::generateIdentity(-1, 2);
+    m.addMatrix(negativeIdentity);
+    m.printMatrix();
+    m.putInRREF();
+    m.printMatrix();
+    Matrix::printBasisList(m.getKernelBasis());
 }
