@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <limits>
 #include <string.h>
+#include <float.h>
 
 
 
@@ -145,7 +146,13 @@ struct Matrix
                     if(row != leadingRow){
                         double leadingValue = mat.at(row).at(columnStart).getConstant();
                         for(int column = columnStart; column < cols; column++){
+                            int accuracy = 1000000000000;
                             mat.at(row).at(column).setConstant(mat.at(row).at(column).getConstant() - leadingValue * mat.at(leadingRow).at(column).getConstant());
+                            mat.at(row).at(column).setConstant( ((double) ((int) (mat.at(row).at(column).getConstant() * accuracy))) / accuracy);
+                            std::cout << abs(mat.at(row).at(column).getConstant()) << " vale abs " << ((((double) 1 ) / accuracy) * 1000) << " acc " << (abs(mat.at(row).at(column).getConstant()) < ((((double) 1 ) / accuracy) * 1000)) << " bool " << std::endl; 
+                            if(abs(mat.at(row).at(column).getConstant()) < abs(((((double) 1 ) / accuracy) * 100))){
+                                mat.at(row).at(column).setConstant(0);
+                            }
                         }
                     }
                 }
@@ -153,6 +160,7 @@ struct Matrix
             else{
                 determinant *= 0;
             }
+            Matrix(mat).printMatrix();
         }
     }
 
@@ -604,12 +612,33 @@ class SearchEngine{
         for(auto p : pageIDOrder){
             std::cout << p <<std::endl;
         }
+        double p = 0.5;
         Matrix transitionMatrix = generateTransitionMatrix(pageIDOrder);
+        transitionMatrix.scaleMatrix(1-p);
+        transitionMatrix.printMatrix();
+        Matrix pB = Matrix::generateScalarMatrix(((double) 1 )/ searchedPages.size(), searchedPages.size());
+        pB.scaleMatrix(p);
+        pB.printMatrix();
+                std::cout << "p" <<std::endl;
+
+        transitionMatrix.addMatrix(pB);
+        transitionMatrix.printMatrix();
+                std::cout << "p1" <<std::endl;
+
         transitionMatrix.addMatrix(Matrix::generateIdentity(-1, pageIDOrder.size()));
+                std::cout << "p2" <<std::endl;
+
         transitionMatrix.putInRREF();
+                std::cout << "p3" <<std::endl;
+
         std::vector<std::vector<double>> kernelBasis = transitionMatrix.getKernelBasis();
+        transitionMatrix.printMatrix();
+                        std::cout << "p4" <<std::endl;
+
         if(kernelBasis.empty()) throw std::runtime_error("Kernel Empty");
         std::vector<double> equilibriumVector = kernelBasis[0];
+                        std::cout << "p5" <<std::endl;
+
         for(auto p : equilibriumVector){
             std::cout << p <<std::endl;
         }
@@ -687,6 +716,9 @@ int main(){
     WebPage google("Google", "Search Engine", 0);
     WebPage bing("Bing", "Search Engine", 1);
     WebPage duckDuckGo("DuckDuck", "Search Engine", 2);
+    WebPage askJeeves("AskJeeves", "Search Engine", 3);
+    WebPage quora("Quora", "Search Engine", 4);
+
 
     //Set Up Google's Links
     std::vector<WebPage> googleLinks{bing, duckDuckGo};
@@ -700,8 +732,16 @@ int main(){
     std::vector<WebPage> duckDuckGoLinks{bing};
     duckDuckGo.setLinks(duckDuckGoLinks);
 
+    //Set Up AskJeeves Links
+    std::vector<WebPage> askJeevesLinks{quora};
+    askJeeves.setLinks(askJeevesLinks);
+
+    //Set Up Quora Links
+    std::vector<WebPage> quoraLinks{askJeeves};
+    quora.setLinks(quoraLinks);
+
     //Set up the Engine Over the Entire Search Space
-    std::vector<WebPage> allLinks{google, bing, duckDuckGo};
+    std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora};
     SearchEngine engine(&allLinks);
 
     std::cout << "Before gen" << std::endl;
