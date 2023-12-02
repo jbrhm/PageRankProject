@@ -489,11 +489,38 @@ struct WebPage{
     //Map of WebPage names to their index
     std::unordered_map<std::string, bool> webPageMap;
 
+    //Unique ID for the webpage
+    int webID;
+
     public:
     //Constructor for the webpage
-    WebPage(std::string websiteName, std::string keyword){
+    WebPage(std::string websiteName, std::string keyword, int webID){
         this->websiteName = websiteName;
         this->keyword = keyword;
+        this->webID =webID;
+    }
+
+    int getID(){
+        return webID;
+    }
+
+    std::vector<double> getTransitionVector(std::vector<int> idOrder){
+        std::vector<double> transitionVector;
+        for(int id : idOrder){
+            bool isFindLink = false;
+            for(WebPage page : links){
+                std::cout << "id " << id << " pageID " << page.getID() << std::endl;
+
+                if(id == page.getID()){
+                    transitionVector.push_back(((double) 1/links.size()));
+                    isFindLink = true;
+                }
+            }
+            if(!isFindLink){
+                transitionVector.push_back(0);
+            }
+        }
+        return transitionVector;
     }
 
     void setLinks(std::vector<WebPage> links){
@@ -539,6 +566,9 @@ class SearchEngine{
     //Map of WebPage names to their index
     std::unordered_map<std::string, int> webPageMap;
 
+    //ID order for the webpages
+    std::vector<int> pageIDOrder;
+
     public:
     //Constructor for the SearchEngine
     SearchEngine(std::vector<WebPage>* pages){
@@ -549,6 +579,11 @@ class SearchEngine{
 
         for(int i = 0; i < pages->size(); i++){
             webPageMap[pages->at(i).getWebsiteName()] = i;
+        }
+
+        generatePageIDOrderVector();
+        for(int ID : pageIDOrder){
+            std::cout << ID << std::endl;
         }
     }
 
@@ -566,19 +601,62 @@ class SearchEngine{
             }
         }
     }
+
+    void generatePageIDOrderVector(){
+        for(WebPage page : *pages){
+            pageIDOrder.push_back(page.getID());
+        }
+    }
+
+    Matrix generateTransitionMatrix(){
+        std::vector<std::vector<Term>> transitionMatrix;
+        for(int i = 0; i < pages->size(); i++){
+            std::vector<Term> row;
+            for(int j = 0; j < pages->size(); j++){
+                row.push_back(Term(0, 0));
+            }
+            transitionMatrix.push_back(row);
+        }
+        for(int col = 0; col < pages->size(); col++){
+            WebPage page = pages->at(col);
+            std::cout << page.getWebsiteName() << std::endl;
+            std::vector<double> transitionVector = page.getTransitionVector(pageIDOrder);
+            for(double d : transitionVector){
+                    std::cout << d << std::endl;
+            }
+            for(int row = 0; row < pageIDOrder.size(); row++){
+                std::cout << transitionVector.at(row) << " br" << std::endl;
+                transitionMatrix.at(row).at(col) = Term(0, transitionVector.at(row));
+            }
+        }
+            
+        return Matrix(transitionMatrix);
+    }
 };
 
 int main(){
-    Term a(0, 1), b(0, 1), c(0, 1), d(0, 1), e(0, 1), f(0, 1), g(0, 1), h(0, 1), i(0, 1);
-    std::vector<std::vector<Term>> vals =   {{a, b, c},
-                                             {d, e, f},
-                                             {g, h, i}};
-    Matrix m(vals);
-    m.printMatrix();
-    std::cout << m.calcDeterminant() << " determinant " << std::endl;
-    m.printMatrix();
+    WebPage google("Google", "Search Engine", 0);
+    WebPage bing("Bing", "Search Engine", 1);
+    WebPage duckDuckGo("DuckDuck", "Search Engine", 2);
 
-    m.putInRREF();
-    m.printMatrix();
-    Matrix::printBasisList(m.getKernelBasis());
+    //Set Up Google's Links
+    std::vector<WebPage> googleLinks{bing, duckDuckGo};
+    google.setLinks(googleLinks);
+
+    //Set Up Bing's Links
+    std::vector<WebPage> bingLinks{google, duckDuckGo};
+    bing.setLinks(bingLinks);
+
+    //Set Up Duck Duck Go's Links
+    std::vector<WebPage> duckDuckGoLinks{bing};
+    duckDuckGo.setLinks(duckDuckGoLinks);
+
+    //Set up the Engine Over the Entire Search Space
+    std::vector<WebPage> allLinks{google, bing, duckDuckGo};
+    SearchEngine engine(&allLinks);
+
+    std::cout << "Before gen" << std::endl;
+    Matrix tranisitionMatrix = engine.generateTransitionMatrix();
+    tranisitionMatrix.printMatrix();
+    //engine.startExecution();
 }
