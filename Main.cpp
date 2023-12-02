@@ -569,16 +569,15 @@ class SearchEngine{
 };
 
 int main(){
-    Term a(0, 2), b(0, 1), c(0, 1), d(0, 2);
-    std::vector<std::vector<Term>> vals =   {{a, b},
-                                             {c, d}};
+    Term a(0, 1), b(0, 1), c(0, 1), d(0, 1), e(0, 1), f(0, 1), g(0, 1), h(0, 1), i(0, 1);
+    std::vector<std::vector<Term>> vals =   {{a, b, c},
+                                             {d, e, f},
+                                             {g, h, i}};
     Matrix m(vals);
     m.printMatrix();
     std::cout << m.calcDeterminant() << " determinant " << std::endl;
     m.printMatrix();
-    Matrix negativeIdentity = Matrix::generateIdentity(-1, 2);
-    m.addMatrix(negativeIdentity);
-    m.printMatrix();
+
     m.putInRREF();
     m.printMatrix();
     Matrix::printBasisList(m.getKernelBasis());
