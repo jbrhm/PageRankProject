@@ -62,6 +62,28 @@ struct Matrix
         }
     }
 
+    static Matrix generateScalarMatrix(double scalar, int dimension){
+        std::vector<std::vector<Term>> mat;
+
+        for(int row = 0; row < dimension; row++){
+            std::vector<Term> tempRow;
+            for(int col = 0; col < dimension; col++){
+                tempRow.push_back(Term(0, scalar));
+            }
+            mat.push_back(tempRow);
+        }
+        return Matrix(mat);
+    }
+
+    void scaleMatrix(double scalar){
+        for(int row = 0; row < rows; row++){
+            for(int col = 0; col < cols; col++){
+                mat.at(row).at(col).setConstant(scalar * mat.at(row).at(col).getConstant());
+            }
+        }
+    }
+    
+
     void addMatrix(Matrix additionalMatrix){
         if(additionalMatrix.getCols() != cols) throw std::runtime_error("Matrices Cols are Different Sizes");
 
@@ -687,5 +709,10 @@ int main(){
     for(WebPage page : pages){
         std::cout << page.getWebsiteName() << std::endl;
     }
+
+    Matrix square = Matrix::generateScalarMatrix(1,3);
+    square.printMatrix();
+    square.scaleMatrix(0.5);
+    square.printMatrix();
     //engine.startExecution();
 }
