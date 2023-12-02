@@ -112,8 +112,6 @@ struct Matrix
             }
             if(leadingRow != -1){
                 pivotRows.push_back(leadingRow);
-
-                std::cout << leadingRow << " Lead row " << std::endl;
                 determinant *= pivotValue;
                 //With the leading row determined we need to scale it to be 1
                 for(int column = columnStart; column < cols; column++){
@@ -123,7 +121,6 @@ struct Matrix
                 for(int row = 0; row < rows; row++){
                     if(row != leadingRow){
                         double leadingValue = mat.at(row).at(columnStart).getConstant();
-                        std::cout << leadingValue << "leadingValue" << std::endl;
                         for(int column = columnStart; column < cols; column++){
                             mat.at(row).at(column).setConstant(mat.at(row).at(column).getConstant() - leadingValue * mat.at(leadingRow).at(column).getConstant());
                         }
@@ -142,13 +139,10 @@ struct Matrix
         std::vector<int> pivotRowsIndexes;
         for(int col = 0; col < cols; col++){
             bool t = !isPivotColumn(col, &pivotRowsIndexes);
-            std::cout << col << " lolol pivot " << t << std::endl;
             if(t){
                 std::vector<double> basisVector;
-                std::cout << "bruh" << std::endl;
                 for(int row = 0; row < rows; row++){
                     std::vector<Term> currRow = mat.at(row);
-                    std::cout << currRow.at(col).getConstant() << " " << (row == col) << " " << " " << -currRow.at(col).getConstant() << std::endl;
                     if(currRow.at(col).getConstant() == 0 && row == col){
                         basisVector.push_back(1);
                     }else{
@@ -250,14 +244,8 @@ struct Matrix
     //Columns Start At 0
     bool isPivotColumn(int col, std::vector<int>* pivotRowsIndexes){
         int numOnes = 0;
-        std::cout << pivotRowsIndexes->size() << " size" << std::endl;
-        for(int index : (*pivotRowsIndexes)){
-            std::cout << index << " pivot " << std::endl;
-        }
-
         for(int rowIndex = 0; rowIndex < rows; rowIndex++){
             std::vector<Term> row = mat.at(rowIndex);
-            std::cout << rowIndex << " row " << (row.at(col).getConstant() == 1) << " constant bool " << !isVectorContains(*pivotRowsIndexes, rowIndex) << " thing" << std::endl;
             if(row.at(col).getConstant() == 1 && !isVectorContains(*pivotRowsIndexes, rowIndex)){
                 numOnes++;
                 pivotRowsIndexes->push_back(rowIndex);
@@ -619,13 +607,8 @@ class SearchEngine{
         }
         for(int col = 0; col < pages->size(); col++){
             WebPage page = pages->at(col);
-            std::cout << page.getWebsiteName() << std::endl;
             std::vector<double> transitionVector = page.getTransitionVector(pageIDOrder);
-            for(double d : transitionVector){
-                    std::cout << d << std::endl;
-            }
             for(int row = 0; row < pageIDOrder.size(); row++){
-                std::cout << transitionVector.at(row) << " br" << std::endl;
                 transitionMatrix.at(row).at(col) = Term(0, transitionVector.at(row));
             }
         }
@@ -658,5 +641,14 @@ int main(){
     std::cout << "Before gen" << std::endl;
     Matrix tranisitionMatrix = engine.generateTransitionMatrix();
     tranisitionMatrix.printMatrix();
+
+    tranisitionMatrix.addMatrix(Matrix::generateIdentity(-1, 3));
+    tranisitionMatrix.printMatrix();
+
+    tranisitionMatrix.putInRREF();
+    tranisitionMatrix.printMatrix();
+
+    auto basis = tranisitionMatrix.getKernelBasis();
+    Matrix::printBasisList(basis);
     //engine.startExecution();
 }
