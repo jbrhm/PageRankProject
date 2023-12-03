@@ -10,6 +10,7 @@
 #include <limits>
 #include <string.h>
 #include <float.h>
+#include <fstream>
 
 
 
@@ -511,12 +512,16 @@ struct WebPage{
     //Unique ID for the webpage
     int webID;
 
+    //keyword Hits
+    int numKeyword;
+
     public:
     //Constructor for the webpage
-    WebPage(std::string websiteName, std::string keyword, int webID){
+    WebPage(std::string websiteName, std::string keyword, int webID, int numKeyword){
         this->websiteName = websiteName;
         this->keyword = keyword;
         this->webID =webID;
+        this->numKeyword = numKeyword;
     }
 
     int getID(){
@@ -576,6 +581,10 @@ struct WebPage{
         }
         return false;
     }
+
+    int getHits(){
+        return numKeyword;
+    }
 };
 
 class SearchEngine{
@@ -589,6 +598,11 @@ class SearchEngine{
     //Map of WebPage names to their index
     std::unordered_map<std::string, int> webPageMap;
 
+    //Vector of user movement through the simulation
+    std::vector<std::vector<int>> map; //Rows are website specific
+
+    std::string filePath = "C:\\Users\\jrabr\\OneDrive\\Desktop\\Michigan Classes\\Linear Algebra\\PageRank Project\\data.lnralg";
+
     public:
     //Constructor for the SearchEngine
     SearchEngine(std::vector<WebPage>* pages){
@@ -599,6 +613,13 @@ class SearchEngine{
 
         for(int i = 0; i < pages->size(); i++){
             webPageMap[pages->at(i).getWebsiteName()] = i;
+        }
+        for(int i = 0; i < pages->size(); i++){
+            std::vector<int> websiteTraffic;
+            for(int j = 0; j < pages->size() + 1; j++){
+                websiteTraffic.push_back(0);
+            }
+            map.push_back(websiteTraffic);
         }
     }
 
@@ -657,6 +678,28 @@ class SearchEngine{
         return orderedPages;
     }
 
+    std::vector<WebPage> searchText(std::string search){
+        std::vector<WebPage> orderedPages;
+        std::vector<WebPage> searchedPages = getSearchedForPages(search);
+        std::vector<int> hitVector;
+        for(auto p : searchedPages){
+            hitVector.push_back(p.getHits());
+        }
+        int eqSize = hitVector.size();
+        for(int m = 0; m < eqSize; m++){
+            int maxIndex = 0;
+            for(int i = 0; i < hitVector.size(); i++){
+                if(hitVector.at(i) > hitVector.at(maxIndex)){
+                    maxIndex = i;
+                }
+            }
+            orderedPages.push_back(searchedPages.at(maxIndex));
+            searchedPages.erase(searchedPages.begin() + maxIndex);
+            hitVector.erase(hitVector.begin() + maxIndex);
+        }
+        return orderedPages;
+    }
+
     std::vector<WebPage> getSearchedForPages(std::string search){
         std::vector<WebPage> searchedPages;
         for(WebPage page : *pages){
@@ -668,8 +711,13 @@ class SearchEngine{
     }
 
     void startExecution(){
+
         while(true){
             std::string nextWebPage = pages->at(websiteID).loadWebPage();
+            if(strcmp(nextWebPage.c_str(), "Exit") == 0){
+                break;
+            }
+
             try{
                 if(pages->at(websiteID).isWebsiteAvailable(nextWebPage)){
                     websiteID = webPageMap.at(nextWebPage);
@@ -680,6 +728,7 @@ class SearchEngine{
                 std::cout << "WebPage not found. Try again!" << std::endl;
             }
         }
+
     }
 
     std::vector<int> generatePageIDOrderVector(std::vector<WebPage> pages){
@@ -713,11 +762,11 @@ class SearchEngine{
 };
 
 int main(){
-    WebPage google("Google", "Search Engine", 0);
-    WebPage bing("Bing", "Search Engine", 1);
-    WebPage duckDuckGo("DuckDuck", "Search Engine", 2);
-    WebPage askJeeves("AskJeeves", "Search Engine", 3);
-    WebPage quora("Quora", "Search Engine", 4);
+    WebPage google("Google", "Search Engine", 0, 234);
+    WebPage bing("Bing", "Search Engine", 1, 5645);
+    WebPage duckDuckGo("DuckDuck", "Search Engine", 2, 23423);
+    WebPage askJeeves("AskJeeves", "Search Engine", 3,2);
+    WebPage quora("Quora", "Search Engine", 4, 9876543);
 
 
     //Set Up Google's Links
@@ -750,9 +799,9 @@ int main(){
         std::cout << page.getWebsiteName() << std::endl;
     }
 
-    Matrix square = Matrix::generateScalarMatrix(1,3);
-    square.printMatrix();
-    square.scaleMatrix(0.5);
-    square.printMatrix();
-    //engine.startExecution();
+    auto pages2 = engine.searchText("Search Engine");
+    for(WebPage page : pages2){
+        std::cout << page.getWebsiteName()  << " has " << page.getHits() << " many hits!"<< std::endl;
+    }
+    engine.startExecution();
 }
