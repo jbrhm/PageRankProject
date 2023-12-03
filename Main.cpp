@@ -32,6 +32,158 @@ struct Term{
     void setConstant(double constant){
         this->constant = constant;
     }
+
+    double getCoefficient(){
+        return coefficient;
+    }
+};
+
+class Polynomial{
+    private:
+    std::vector<double> polynomial;
+
+    public:
+
+    Polynomial(std::vector<double> polynomial){
+        this->polynomial = polynomial;
+    }
+
+    Polynomial(){
+        polynomial = std::vector<double>();
+    }
+
+    std::vector<double> getAllZeros(){
+        Polynomial currentPolynomial = polynomial;
+
+        std::vector<double> zeros;
+        for(int i = 0; i < polynomial.size() - 1; i++){
+            double zero = currentPolynomial.getZero();
+            currentPolynomial = Polynomial(currentPolynomial.syntheticDivision(zero).getCoefficientVector());
+            currentPolynomial.printPolynomial();
+            zeros.push_back(zero);
+        }
+
+        return zeros;
+    }
+
+    Polynomial syntheticDivision(double divisor){
+        std::vector<double> dividend;
+        double value = polynomial.at(polynomial.size() - 1);
+        dividend.push_back(value);
+        for(int i = (polynomial.size() - 2); i >= 1; i--){
+            value = value * divisor;
+            value += polynomial.at(i);
+            dividend.push_back(value);
+        }
+        for(double d : dividend){
+        }
+        /*
+        for(double coeff : dividend){
+            std::cout << coeff << std::endl;
+        }
+        */
+        std::reverse(dividend.begin(), dividend.end());
+        return Polynomial(dividend);
+    }
+
+    double getZero(){
+        int numIterations = 100;
+        double xValue = 0;
+        for(int i = 0; i < numIterations; i++){
+            xValue = xValue - (getValue(xValue)/getDerivative(xValue));
+        }
+        //std::cout << getValue(xValue) << " for zero " << xValue << std::endl;
+        return xValue;
+    }
+
+    double getDerivative(double xValue){
+        double step = 0.0000001;
+        double deltaY = getValue(xValue + step) - getValue(xValue);    
+        return deltaY/step;
+    }
+
+    double getValue(double xValue){
+        int size = polynomial.size();
+        double value = 0;
+        for(int i = 0; i < size; i++){
+            value += polynomial.at(i) * std::pow(xValue, i);
+        }
+        return value;
+    }
+
+    int getDegree(){
+        return polynomial.size() - 1;
+    }
+
+    double getCoefficient(int degree){
+        return polynomial.at(degree);
+    }
+
+    std::vector<double> getCoefficientVector(){
+        return polynomial;
+    }
+
+    void setCoefficientVector(std::vector<double> coefficientVector){
+        polynomial = coefficientVector;
+    }
+
+    void addPolynomial(Polynomial add){
+        Polynomial large;
+        Polynomial small;
+
+        std::vector<double> sum;
+
+        //Determine which Polynomial has the higher degree
+        if(add.getDegree() > polynomial.size()-1){
+            large = add;
+            small = polynomial;
+        }else{
+            large = polynomial;
+            small = add;
+        }
+
+        std::cout << "The large degree is " << large.getDegree() << std::endl;
+
+        for(int degree = 0; degree <= large.getDegree(); degree++){
+            double coeffSum = large.getCoefficient(degree);
+            if(small.getDegree() >= degree){
+                coeffSum += small.getCoefficient(degree);
+            }
+            sum.push_back(coeffSum);
+        }
+
+        polynomial = sum;
+    }
+
+    void multiplyPolynomial(Polynomial multiply){
+        std::vector<Polynomial> subTerms;
+
+        for(int scalarIndex = 0; scalarIndex < polynomial.size(); scalarIndex++){
+            std::vector<double> tempTerm;
+            for(int i = 0; i < scalarIndex; i++){
+                tempTerm.push_back(0);//Do increase the degree of the polynomial accordingly
+            }
+            double scalar = polynomial.at(scalarIndex);
+            for(double coefficient : multiply.getCoefficientVector()){
+                tempTerm.push_back(scalar * coefficient);
+            }
+            subTerms.push_back(Polynomial(tempTerm));
+        }
+
+        Polynomial sumTerms(std::vector<double>{0});
+        for(Polynomial subPoly : subTerms){
+            subPoly.printPolynomial();
+            std::cout << " Poly " << std::endl;
+            sumTerms.addPolynomial(subPoly);
+        }
+        polynomial = sumTerms.getCoefficientVector();
+    }
+
+    void printPolynomial(){
+        for(double coeff : polynomial){
+            std::cout << coeff << std::endl;
+        }
+    }
 };
 
 struct Matrix
@@ -62,6 +214,24 @@ struct Matrix
         if(rows != 0){
             cols = mat.at(0).size();
         }
+    }
+
+    Polynomial getCharacteristic(){
+        Polynomial characteristic(std::vector<double>{});
+        if(rows == cols && rows == 2){
+            Polynomial term1 = Polynomial(std::vector<double>{mat.at(0).at(0).getConstant(), -1});
+            term1.printPolynomial();
+            Polynomial term2 = Polynomial(std::vector<double>{mat.at(1).at(1).getConstant(), -1});
+            term2.printPolynomial();
+            Polynomial term3 = Polynomial(std::vector<double>{-mat.at(0).at(1).getConstant() * mat.at(1).at(0).getConstant()});
+            term3.printPolynomial();
+            term1.multiplyPolynomial(term2);
+            term1.printPolynomial();
+            term1.addPolynomial(term3);
+            term1.printPolynomial();
+            return term1;
+        }
+        return characteristic;
     }
 
     static Matrix generateScalarMatrix(double scalar, int dimension){
@@ -294,151 +464,7 @@ struct Matrix
 
 
 
-class Polynomial{
-    private:
-    std::vector<double> polynomial;
 
-    public:
-
-    Polynomial(std::vector<double> polynomial){
-        this->polynomial = polynomial;
-    }
-
-    Polynomial(){
-        polynomial = std::vector<double>();
-    }
-
-    std::vector<double> getAllZeros(){
-        Polynomial currentPolynomial = polynomial;
-
-        std::vector<double> zeros;
-        for(int i = 0; i < polynomial.size() - 1; i++){
-            double zero = currentPolynomial.getZero();
-            currentPolynomial = Polynomial(currentPolynomial.syntheticDivision(zero).getCoefficientVector());
-            currentPolynomial.printPolynomial();
-            zeros.push_back(zero);
-        }
-
-        return zeros;
-    }
-
-    Polynomial syntheticDivision(double divisor){
-        std::vector<double> dividend;
-        double value = polynomial.at(polynomial.size() - 1);
-        dividend.push_back(value);
-        for(int i = (polynomial.size() - 2); i >= 1; i--){
-            value = value * divisor;
-            value += polynomial.at(i);
-            dividend.push_back(value);
-        }
-        for(double d : dividend){
-        }
-        /*
-        for(double coeff : dividend){
-            std::cout << coeff << std::endl;
-        }
-        */
-        std::reverse(dividend.begin(), dividend.end());
-        return Polynomial(dividend);
-    }
-
-    double getZero(){
-        int numIterations = 100;
-        double xValue = 0;
-        for(int i = 0; i < numIterations; i++){
-            xValue = xValue - (getValue(xValue)/getDerivative(xValue));
-        }
-        //std::cout << getValue(xValue) << " for zero " << xValue << std::endl;
-        return xValue;
-    }
-
-    double getDerivative(double xValue){
-        double step = 0.0000001;
-        double deltaY = getValue(xValue + step) - getValue(xValue);    
-        return deltaY/step;
-    }
-
-    double getValue(double xValue){
-        int size = polynomial.size();
-        double value = 0;
-        for(int i = 0; i < size; i++){
-            value += polynomial.at(i) * std::pow(xValue, i);
-        }
-        return value;
-    }
-
-    int getDegree(){
-        return polynomial.size() - 1;
-    }
-
-    double getCoefficient(int degree){
-        return polynomial.at(degree);
-    }
-
-    std::vector<double> getCoefficientVector(){
-        return polynomial;
-    }
-
-    void setCoefficientVector(std::vector<double> coefficientVector){
-        polynomial = coefficientVector;
-    }
-
-    void addPolynomial(Polynomial add){
-        Polynomial large;
-        Polynomial small;
-
-        std::vector<double> sum;
-
-        //Determine which Polynomial has the higher degree
-        if(add.getDegree() > polynomial.size()-1){
-            large = add;
-            small = polynomial;
-        }else{
-            large = polynomial;
-            small = add;
-        }
-
-        std::cout << "The large degree is " << large.getDegree() << std::endl;
-
-        for(int degree = 0; degree <= large.getDegree(); degree++){
-            int coeffSum = large.getCoefficient(degree);
-            if(small.getDegree() >= degree){
-                coeffSum += small.getCoefficient(degree);
-            }
-            sum.push_back(coeffSum);
-        }
-
-        polynomial = sum;
-    }
-
-    void multiplyPolynomial(Polynomial multiply){
-        std::vector<Polynomial> subTerms;
-
-        for(int scalarIndex = 0; scalarIndex < polynomial.size(); scalarIndex++){
-            std::vector<double> tempTerm;
-            for(int i = 0; i < scalarIndex; i++){
-                tempTerm.push_back(0);//Do increase the degree of the polynomial accordingly
-            }
-            double scalar = polynomial.at(scalarIndex);
-            for(double coefficient : multiply.getCoefficientVector()){
-                tempTerm.push_back(scalar * coefficient);
-            }
-            subTerms.push_back(Polynomial(tempTerm));
-        }
-
-        Polynomial sumTerms(std::vector<double>{0});
-        for(Polynomial subPoly : subTerms){
-            sumTerms.addPolynomial(subPoly);
-        }
-        polynomial = sumTerms.getCoefficientVector();
-    }
-
-    void printPolynomial(){
-        for(double coeff : polynomial){
-            std::cout << coeff << std::endl;
-        }
-    }
-};
 
 class Rational{
     private:
@@ -764,44 +790,25 @@ class SearchEngine{
 int main(){
     WebPage google("Google", "Search Engine", 0, 234);
     WebPage bing("Bing", "Search Engine", 1, 5645);
-    WebPage duckDuckGo("DuckDuck", "Search Engine", 2, 23423);
-    WebPage askJeeves("AskJeeves", "Search Engine", 3,2);
-    WebPage quora("Quora", "Search Engine", 4, 9876543);
-
 
     //Set Up Google's Links
-    std::vector<WebPage> googleLinks{bing, duckDuckGo};
+    std::vector<WebPage> googleLinks{bing, google};
     google.setLinks(googleLinks);
 
     //Set Up Bing's Links
-    std::vector<WebPage> bingLinks{google, duckDuckGo};
+    std::vector<WebPage> bingLinks{google};
     bing.setLinks(bingLinks);
 
-    //Set Up Duck Duck Go's Links
-    std::vector<WebPage> duckDuckGoLinks{bing};
-    duckDuckGo.setLinks(duckDuckGoLinks);
-
-    //Set Up AskJeeves Links
-    std::vector<WebPage> askJeevesLinks{quora};
-    askJeeves.setLinks(askJeevesLinks);
-
-    //Set Up Quora Links
-    std::vector<WebPage> quoraLinks{askJeeves};
-    quora.setLinks(quoraLinks);
-
     //Set up the Engine Over the Entire Search Space
-    std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora};
+    std::vector<WebPage> allLinks{google, bing};
     SearchEngine engine(&allLinks);
 
-    std::cout << "Before gen" << std::endl;
-    auto pages = engine.search("Search Engine");
-    for(WebPage page : pages){
-        std::cout << page.getWebsiteName() << std::endl;
-    }
+    Matrix transitionMatrix = engine.generateTransitionMatrix(engine.generatePageIDOrderVector(allLinks));
+    std::cout << "Transition Matrix" << std::endl;
+    transitionMatrix.printMatrix();
+    Polynomial charPoly = transitionMatrix.getCharacteristic();
+    std::cout << "Characteristic Polynomial" << std::endl;
+    charPoly.printPolynomial();
 
-    auto pages2 = engine.searchText("Search Engine");
-    for(WebPage page : pages2){
-        std::cout << page.getWebsiteName()  << " has " << page.getHits() << " many hits!"<< std::endl;
-    }
-    engine.startExecution();
+    //engine.startExecution();
 }
