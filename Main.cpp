@@ -59,7 +59,6 @@ class Polynomial{
         for(int i = 0; i < polynomial.size() - 1; i++){
             double zero = currentPolynomial.getZero();
             currentPolynomial = Polynomial(currentPolynomial.syntheticDivision(zero).getCoefficientVector());
-            currentPolynomial.printPolynomial();
             zeros.push_back(zero);
         }
 
@@ -92,7 +91,6 @@ class Polynomial{
         for(int i = 0; i < numIterations; i++){
             xValue = xValue - (getValue(xValue)/getDerivative(xValue));
         }
-        //std::cout << getValue(xValue) << " for zero " << xValue << std::endl;
         return xValue;
     }
 
@@ -142,7 +140,6 @@ class Polynomial{
             small = add;
         }
 
-        std::cout << "The large degree is " << large.getDegree() << std::endl;
 
         for(int degree = 0; degree <= large.getDegree(); degree++){
             double coeffSum = large.getCoefficient(degree);
@@ -172,8 +169,6 @@ class Polynomial{
 
         Polynomial sumTerms(std::vector<double>{0});
         for(Polynomial subPoly : subTerms){
-            subPoly.printPolynomial();
-            std::cout << " Poly " << std::endl;
             sumTerms.addPolynomial(subPoly);
         }
         polynomial = sumTerms.getCoefficientVector();
@@ -320,7 +315,6 @@ struct Matrix
                             int accuracy = 1000000000000;
                             mat.at(row).at(column).setConstant(mat.at(row).at(column).getConstant() - leadingValue * mat.at(leadingRow).at(column).getConstant());
                             mat.at(row).at(column).setConstant( ((double) ((int) (mat.at(row).at(column).getConstant() * accuracy))) / accuracy);
-                            std::cout << abs(mat.at(row).at(column).getConstant()) << " vale abs " << ((((double) 1 ) / accuracy) * 1000) << " acc " << (abs(mat.at(row).at(column).getConstant()) < ((((double) 1 ) / accuracy) * 1000)) << " bool " << std::endl; 
                             if(abs(mat.at(row).at(column).getConstant()) < abs(((((double) 1 ) / accuracy) * 100))){
                                 mat.at(row).at(column).setConstant(0);
                             }
@@ -331,7 +325,6 @@ struct Matrix
             else{
                 determinant *= 0;
             }
-            Matrix(mat).printMatrix();
         }
     }
 
@@ -394,7 +387,6 @@ struct Matrix
             if(leadingRow != -1){
                 pivotRows.push_back(leadingRow);
 
-                std::cout << leadingRow << " Lead row " << std::endl;
                 determinant *= pivotValue;
                 //With the leading row determined we need to scale it to be 1
                 for(int column = columnStart; column < cols; column++){
@@ -404,7 +396,6 @@ struct Matrix
                 for(int row = 0; row < rows; row++){
                     if(row != leadingRow){
                         double leadingValue = tempMat.at(row).at(columnStart).getConstant();
-                        std::cout << leadingValue << "leadingValue" << std::endl;
                         for(int column = columnStart; column < cols; column++){
                             tempMat.at(row).at(column).setConstant(tempMat.at(row).at(column).getConstant() - leadingValue * tempMat.at(leadingRow).at(column).getConstant());
                         }
@@ -559,7 +550,6 @@ struct WebPage{
         for(int id : idOrder){
             bool isFindLink = false;
             for(WebPage page : links){
-                std::cout << "id " << id << " pageID " << page.getID() << std::endl;
 
                 if(id == page.getID()){
                     transitionVector.push_back(((double) 1/links.size()));
@@ -596,6 +586,8 @@ struct WebPage{
         for(WebPage page : links){
             std::cout << "Type " << page.getWebsiteName() << " to go to " << page.getWebsiteName() << std::endl;
         }
+        std::cout << "Or Type Exit to leave the program, or type Search to Search the web" << std::endl;
+
         std::string nextPage;
         std::cin >> nextPage;
         return nextPage;
@@ -634,7 +626,6 @@ class SearchEngine{
     SearchEngine(std::vector<WebPage>* pages){
         this->pages = pages;
         std::srand(std::time(NULL));
-        std::cout << (std::rand()/ (double) INT_MAX) << std::endl;
         websiteID = static_cast<int>((std::rand()/ (double) RAND_MAX) * pages->size());
 
         for(int i = 0; i < pages->size(); i++){
@@ -650,45 +641,28 @@ class SearchEngine{
     }
 
     std::vector<WebPage> search(std::string search){
+
         std::vector<WebPage> orderedPages;
         std::vector<WebPage> searchedPages = getSearchedForPages(search);
-        for(auto p : searchedPages){
-            std::cout << p.getWebsiteName() <<std::endl;
-        }
+
         std::vector<int> pageIDOrder = generatePageIDOrderVector(searchedPages);
-        for(auto p : pageIDOrder){
-            std::cout << p <<std::endl;
-        }
+
         double p = 0.5;
         Matrix transitionMatrix = generateTransitionMatrix(pageIDOrder);
         transitionMatrix.scaleMatrix(1-p);
-        transitionMatrix.printMatrix();
         Matrix pB = Matrix::generateScalarMatrix(((double) 1 )/ searchedPages.size(), searchedPages.size());
         pB.scaleMatrix(p);
-        pB.printMatrix();
-                std::cout << "p" <<std::endl;
 
         transitionMatrix.addMatrix(pB);
-        transitionMatrix.printMatrix();
-                std::cout << "p1" <<std::endl;
 
         transitionMatrix.addMatrix(Matrix::generateIdentity(-1, pageIDOrder.size()));
-                std::cout << "p2" <<std::endl;
 
         transitionMatrix.putInRREF();
-                std::cout << "p3" <<std::endl;
 
         std::vector<std::vector<double>> kernelBasis = transitionMatrix.getKernelBasis();
-        transitionMatrix.printMatrix();
-                        std::cout << "p4" <<std::endl;
 
         if(kernelBasis.empty()) throw std::runtime_error("Kernel Empty");
         std::vector<double> equilibriumVector = kernelBasis[0];
-                        std::cout << "p5" <<std::endl;
-
-        for(auto p : equilibriumVector){
-            std::cout << p <<std::endl;
-        }
         int eqSize = equilibriumVector.size();
         for(int m = 0; m < eqSize; m++){
             int maxIndex = 0;
@@ -742,16 +716,37 @@ class SearchEngine{
             std::string nextWebPage = pages->at(websiteID).loadWebPage();
             if(strcmp(nextWebPage.c_str(), "Exit") == 0){
                 break;
-            }
+            }else if(strcmp(nextWebPage.c_str(), "Search") == 0){
+                std::cout << "What are you searching for?" << std::endl;
+                std::string webKeyword;
+                std::cin.ignore();
 
-            try{
-                if(pages->at(websiteID).isWebsiteAvailable(nextWebPage)){
-                    websiteID = webPageMap.at(nextWebPage);
-                }else{
-                    throw std::out_of_range("");
+                std::getline(std::cin, webKeyword);
+                auto pages = search(webKeyword);
+
+                std::cout << "What WebPage would you like to go to?" << std::endl;
+                for(WebPage page : pages){
+                    std::cout << "Type " << page.getWebsiteName() << " to go to " << page.getWebsiteName() << std::endl;
                 }
-            }catch(std::out_of_range){
-                std::cout << "WebPage not found. Try again!" << std::endl;
+                std::string webName;
+                std::cin >> webName;
+                for(WebPage page : pages){
+                    if(strcmp(webName.c_str(), page.getWebsiteName().c_str()) == 0){
+                        websiteID = page.getID();
+                        break;
+                    }
+                }
+            }else{
+                try{
+                    if(pages->at(websiteID).isWebsiteAvailable(nextWebPage)){
+                        websiteID = webPageMap.at(nextWebPage);
+                    }else{
+                        throw std::out_of_range("");
+                    }
+                }
+                catch(std::out_of_range){
+                    std::cout << "WebPage not found. Try again!" << std::endl;
+                }
             }
         }
 
@@ -787,28 +782,40 @@ class SearchEngine{
     }
 };
 
+
 int main(){
-    WebPage google("Google", "Search Engine", 0, 234);
-    WebPage bing("Bing", "Search Engine", 1, 5645);
+    WebPage google("Google", "Search Engine", 0, 2398);
+    WebPage bing("Bing", "Search Engine", 1, 2934723);
+    WebPage duckDuckGo("DuckDuck", "Search Engine", 2, 2394);
+    WebPage askJeeves("AskJeeves", "Search Engine", 3, 23984);
+    WebPage quora("Quora", "Search Engine", 4,123);
+
 
     //Set Up Google's Links
-    std::vector<WebPage> googleLinks{bing, google};
+    std::vector<WebPage> googleLinks{bing, duckDuckGo, google};
     google.setLinks(googleLinks);
 
     //Set Up Bing's Links
-    std::vector<WebPage> bingLinks{google};
+    std::vector<WebPage> bingLinks{google, duckDuckGo, bing};
     bing.setLinks(bingLinks);
 
+    //Set Up Duck Duck Go's Links
+    std::vector<WebPage> duckDuckGoLinks{bing, duckDuckGo};
+    duckDuckGo.setLinks(duckDuckGoLinks);
+
+    //Set Up AskJeeves Links
+    std::vector<WebPage> askJeevesLinks{quora, askJeeves};
+    askJeeves.setLinks(askJeevesLinks);
+
+    //Set Up Quora Links
+    std::vector<WebPage> quoraLinks{askJeeves, quora};
+    quora.setLinks(quoraLinks);
+
     //Set up the Engine Over the Entire Search Space
-    std::vector<WebPage> allLinks{google, bing};
+    std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora};
     SearchEngine engine(&allLinks);
 
-    Matrix transitionMatrix = engine.generateTransitionMatrix(engine.generatePageIDOrderVector(allLinks));
-    std::cout << "Transition Matrix" << std::endl;
-    transitionMatrix.printMatrix();
-    Polynomial charPoly = transitionMatrix.getCharacteristic();
-    std::cout << "Characteristic Polynomial" << std::endl;
-    charPoly.printPolynomial();
+    auto pages = engine.search("Search Engine");
 
     engine.startExecution();
 }
