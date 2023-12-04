@@ -810,5 +810,5 @@ int main(){
     std::cout << "Characteristic Polynomial" << std::endl;
     charPoly.printPolynomial();
 
-    //engine.startExecution();
+    engine.startExecution();
 }
