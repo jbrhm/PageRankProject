@@ -344,9 +344,6 @@ struct Matrix
                         basisVector.push_back(-currRow.at(col).getConstant());
                     }
                 }
-                for(double d : basisVector){
-                    std::cout << d << std::endl;
-                }
                 basisList.push_back(basisVector);
             }
         }
@@ -641,7 +638,6 @@ class SearchEngine{
     }
 
     std::vector<WebPage> search(std::string search){
-
         std::vector<WebPage> orderedPages;
         std::vector<WebPage> searchedPages = getSearchedForPages(search);
 
@@ -652,7 +648,6 @@ class SearchEngine{
         transitionMatrix.scaleMatrix(1-p);
         Matrix pB = Matrix::generateScalarMatrix(((double) 1 )/ searchedPages.size(), searchedPages.size());
         pB.scaleMatrix(p);
-
         transitionMatrix.addMatrix(pB);
 
         transitionMatrix.addMatrix(Matrix::generateIdentity(-1, pageIDOrder.size()));
@@ -660,6 +655,7 @@ class SearchEngine{
         transitionMatrix.putInRREF();
 
         std::vector<std::vector<double>> kernelBasis = transitionMatrix.getKernelBasis();
+
 
         if(kernelBasis.empty()) throw std::runtime_error("Kernel Empty");
         std::vector<double> equilibriumVector = kernelBasis[0];
@@ -763,18 +759,25 @@ class SearchEngine{
 
     Matrix generateTransitionMatrix(std::vector<int> pageIDOrder){
         std::vector<std::vector<Term>> transitionMatrix;
-        for(int i = 0; i < pages->size(); i++){
+
+        for(int i = 0; i < pageIDOrder.size(); i++){
             std::vector<Term> row;
-            for(int j = 0; j < pages->size(); j++){
+            for(int j = 0; j < pageIDOrder.size(); j++){
                 row.push_back(Term(0, 0));
             }
             transitionMatrix.push_back(row);
         }
-        for(int col = 0; col < pages->size(); col++){
-            WebPage page = pages->at(col);
-            std::vector<double> transitionVector = page.getTransitionVector(pageIDOrder);
-            for(int row = 0; row < pageIDOrder.size(); row++){
-                transitionMatrix.at(row).at(col) = Term(0, transitionVector.at(row));
+        
+        for(int col = 0; col < pageIDOrder.size(); col++){
+            for(int pagesCol = 0; pagesCol < pages->size(); pagesCol++){
+                if(pageIDOrder.at(col) == pages->at(pagesCol).getID()){
+                    WebPage page = pages->at(pagesCol);
+                    std::vector<double> transitionVector = page.getTransitionVector(pageIDOrder);
+                    for(int row = 0; row < pageIDOrder.size(); row++){
+                        transitionMatrix.at(row).at(col) = Term(0, transitionVector.at(row));
+                    }
+
+                }
             }
         }
             
@@ -789,6 +792,8 @@ int main(){
     WebPage duckDuckGo("DuckDuck", "Search Engine", 2, 2394);
     WebPage askJeeves("AskJeeves", "Search Engine", 3, 23984);
     WebPage quora("Quora", "Search Engine", 4,123);
+    WebPage youtube("YouTube", "Social Media", 5,1435);
+    WebPage facebook("FaceBook", "Social Media", 6,238492);
 
 
     //Set Up Google's Links
@@ -811,11 +816,17 @@ int main(){
     std::vector<WebPage> quoraLinks{askJeeves, quora};
     quora.setLinks(quoraLinks);
 
-    //Set up the Engine Over the Entire Search Space
-    std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora};
-    SearchEngine engine(&allLinks);
+    //Set Up YouTube's Links
+    std::vector<WebPage> youtubeLinks{youtube, facebook};
+    youtube.setLinks(youtubeLinks);
 
-    auto pages = engine.search("Search Engine");
+    //Set Up FaceBooks's Links
+    std::vector<WebPage> facebookLinks{youtube, facebook};
+    facebook.setLinks(facebookLinks);
+
+    //Set up the Engine Over the Entire Search Space
+    std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora, youtube, facebook};
+    SearchEngine engine(&allLinks);
 
     engine.startExecution();
 }
