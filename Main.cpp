@@ -677,6 +677,7 @@ class SearchEngine{
     std::vector<WebPage> searchText(std::string search){
         std::vector<WebPage> orderedPages;
         std::vector<WebPage> searchedPages = getSearchedForPages(search);
+
         std::vector<int> hitVector;
         for(auto p : searchedPages){
             hitVector.push_back(p.getHits());
@@ -828,5 +829,13 @@ int main(){
     std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora, youtube, facebook};
     SearchEngine engine(&allLinks);
 
-    engine.startExecution();
+    std::cout << "What would you like to search?" << std::endl;
+    std::string keyword;
+
+    std::getline(std::cin, keyword);
+    auto pages2 = engine.searchText(keyword);
+
+    for(auto page : pages2){
+        std::cout << page.getWebsiteName() << std::endl;
+    }
 }
