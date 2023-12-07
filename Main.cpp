@@ -645,10 +645,17 @@ class SearchEngine{
 
         double p = 0.5;
         Matrix transitionMatrix = generateTransitionMatrix(pageIDOrder);
+
+        std::cout << "Unaltered Transition Matrix" << std::endl;
+        transitionMatrix.printMatrix();
+
         transitionMatrix.scaleMatrix(1-p);
         Matrix pB = Matrix::generateScalarMatrix(((double) 1 )/ searchedPages.size(), searchedPages.size());
         pB.scaleMatrix(p);
         transitionMatrix.addMatrix(pB);
+
+        std::cout << "(1-p)A + pB Transition Matrix" << std::endl;
+        transitionMatrix.printMatrix();
 
         transitionMatrix.addMatrix(Matrix::generateIdentity(-1, pageIDOrder.size()));
 
@@ -658,7 +665,17 @@ class SearchEngine{
 
 
         if(kernelBasis.empty()) throw std::runtime_error("Kernel Empty");
+
+
         std::vector<double> equilibriumVector = kernelBasis[0];
+
+        std::cout << "Equilibrium Vector" << std::endl;
+        for(auto a : equilibriumVector){
+            std::cout << a << std::endl;
+
+        }
+
+
         int eqSize = equilibriumVector.size();
         for(int m = 0; m < eqSize; m++){
             int maxIndex = 0;
@@ -828,14 +845,5 @@ int main(){
     //Set up the Engine Over the Entire Search Space
     std::vector<WebPage> allLinks{google, bing, duckDuckGo, askJeeves, quora, youtube, facebook};
     SearchEngine engine(&allLinks);
-
-    std::cout << "What would you like to search?" << std::endl;
-    std::string keyword;
-
-    std::getline(std::cin, keyword);
-    auto pages2 = engine.searchText(keyword);
-
-    for(auto page : pages2){
-        std::cout << page.getWebsiteName() << std::endl;
-    }
+    engine.startExecution();
 }
